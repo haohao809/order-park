@@ -15,7 +15,7 @@ const parkConfig =  {
 const signParkConfig =  {
     code: 'p210434036',
     parkCode: '100019',
-    oneId: 'oDJ04uCH2uyYC4PQqNXQNTEjuhRI'  //待定
+    oneId: 'oDJ04uCH2uyYC4PQqNXQNTEjuhRI'  //设备唯一ID
 }
 
 const spaceId = '2411287'  // 预定时候才能获取
