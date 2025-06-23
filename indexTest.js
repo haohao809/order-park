@@ -18,7 +18,9 @@ const signParkConfig =  {
     oneId: 'oDJ04uCH2uyYC4PQqNXQNTEjuhRI'  //设备唯一ID
 }
 
-const spaceId = '2411287'  // 预定时候才能获取
+const spaceId = '2411287'  // 预定时候才能获取，每个公园都不一样 可通过查询公园信息拿到
+
+//2605927 园博园公园
 
 // 用户信息、绑定即可获取
 const phone = 'MTU5ODY3NTkxMzU='
@@ -335,6 +337,7 @@ async function parkDeil() {
         const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/parkInfo/parkDetail',parkConfig , dynamicHeaders)
           if(response && response.code === 0) {
             const leftNum = response.data.fuelOilResidueNum
+            spaceId = response.data.lotList[0].id
             console.log('leftNum',leftNum);
             console.log('currentTime',getCurrentTime());
             if(leftNum > 0) {

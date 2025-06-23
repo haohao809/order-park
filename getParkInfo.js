@@ -1,32 +1,5 @@
 const axios = require('axios');
-const sharp = require('sharp');
-const { createWorker } = require('tesseract.js');
-// 用户信息、绑定即可获取
-const phoneNumber = '15986759132'
-const carNumber = '粤BGM7912'
-
-// 用户ID
-const oneId = 'oDJ04uIo5ORlBNkwIZ4sPdPQE3Sw'
-// const base64Encode = (str) => 
-//     btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, 
-//       (_, hex) => String.fromCharCode(parseInt(hex, 16))
-// ));
-function base64Encode(le) {
-    const l = le.toString();   
-    if (typeof l === "string" || typeof l === "number") {
-      // 直接使用 Buffer 进行 UTF-8 到 Base64 的转换
-      return Buffer.from(String(l)).toString("base64");
-    } else {
-      return l;
-    }
-}
-// 使用示例
-const carNo = base64Encode(carNumber);
-// const phone = window.btoa(phoneNumber)
-const iphone = Buffer.from(phoneNumber).toString('base64')
-console.log('carNo',carNo);
-console.log('iphone',iphone);
-
+const parkName = ""
 var n = {
     utf8: {
         stringToBytes: function(t) {
@@ -212,25 +185,9 @@ function bytesToHex(t) {
     return e.join("")
 }
 
-// base64转成数字
-function blurBase64Image(base64, blurSigma) {
-    // 将Base64字符串转换为缓冲区
-    const buffer = Buffer.from(base64, 'base64');
-   
-    // 使用sharp对图片进行降噪处理
-    return sharp(buffer)
-      .resize(150, 70)
-      .blur(blurSigma) // blurSigma是降噪算法的sigma值
-      .toBuffer({ resolveWithObject: true })
-      .then(({ data, info }) => {
-        // 将缓冲区数据转换回Base64字符串
-        const base64Image = data.toString('base64');
-        return `data:image/jpeg;base64,${base64Image}`;
-      });
-}
-
 async function sendRequest(url, data={}, headers={}) {  
     // 创建axios请求配置对象  
+    console.log('headers',headers)
     const requestHeaders = {
         'Content-Type': 'application/json;charset=utf-8',
         'x-appcode': 'parking',
@@ -254,6 +211,7 @@ async function sendRequest(url, data={}, headers={}) {
         throw error; // 抛出错误
     } 
 }
+
 
 function generateSign (queryParam) {
     console.log('queryParam',queryParam);
@@ -286,80 +244,10 @@ let encryptedStr = ("".concat(t.method,'\n')
     let sign = bytesToHex(signlist)
     return {sign, timestamp, nonce, queryString}
 }
-// 绑定信息
-// getCode()
-// 解绑信息
-search()
-// 获取验证码
-async function getCode(id) {
 
-    const {sign,timestamp,nonce,queryString} = generateSign (
-        {
-            oneId: oneId
-        }
-    )
-    const dynamicHeaders = {  
-        'sign': sign,  
-        'timestamp': timestamp,
-        'nonce':  nonce,
-         queryString
-    };
-    try {
-        const response =  await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/parkInfo/getCode',{
-            oneId:  oneId,
-        },dynamicHeaders)
-        if(response && response.code ===0) {
-            const base64 = response.data;
-            console.log('base64', base64);
-          processBase64Image(base64, 2.38);
-          async function processBase64Image(base64, threshold) {  
-            try {  
-                // 模糊图片  
-                    const blurredBase64 = await blurBase64Image(base64, threshold);  
-                    // console.log(blurredBase64); // 输出降噪后的Base64图片  
-            
-                    // 创建OCR工作线程  
-                    const worker = await createWorker('eng');  
-                    // 设置OCR参数  
-                    await worker.setParameters({  
-                        tessedit_char_whitelist: '0123456789',  
-                    });  
-            
-                    // 使用OCR识别图片  
-                    const result = await worker.recognize(blurredBase64);  
-                    const text = result.data.text;  
-                    console.log('getCode',text);  
-                    // 清理OCR工作线程  
-                    await worker.terminate();  
-            
-                    // 验证验证码  
-                    const verificationCode = text.trim();  
-                  //  验证码有效，执行后续操作  
-                       if(String(verificationCode).replace(/\s*/g,'').length !== 4) {
-                          getCode()
-                      } else {
-
-                        if(id) {
-                           unbind(String(verificationCode).trim(),id)
-                        } else {
-                           bind(String(verificationCode).trim(),0)
-                        }
-
-                      }                  
-                } catch (error) {  
-                    console.error('处理图片时发生错误:', error);  
-                    getCode()
-                }  
-            } 
-        }
-    } catch (error) {
-        console.error('getCode发生错误:', error);  
-        getCode()
-    }
-}
-// 绑定
-async function bind(code) {
-    const params = {carNo,carNoType:1,sourceType: 1,iphone,'verificationCode':code,oneId}
+searchList()
+async function searchList() {
+    const params = {currPage: 1, pageSize: 10, parkName}
     const {sign,timestamp,nonce,queryString} = generateSign(params)
     const dynamicHeaders = {  
         'sign': sign,  
@@ -367,58 +255,13 @@ async function bind(code) {
         'nonce':  nonce,
          queryString
     };
-    const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/userCarInfo/bind',params,dynamicHeaders)
+    const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/parkInfo/searchList',params,dynamicHeaders)
     console.log('reservation.response',response);
     if(response.code === 0) {
-        console.log('绑定成功');
-    } else {
-        if(response.msg.indexOf('验证码错误或已过期') >= 0) {
-            getCode()                       
-        }    
-        else {
-            console.log('绑定失败',response.msg)
+        console.log('查询成功');
+        // console.log('response.data',response.data.list)
+        for(let item of response.data.list) {
+            console.log(item['lotAppVOS'])
         }
     }
-
-
-}
-// 获取绑定ID
-async function search() {
-    const params = { oneId }
-    const {sign,timestamp,nonce,queryString} = generateSign(params)
-    const dynamicHeaders = {  
-        'sign': sign,  
-        'timestamp': timestamp,
-        'nonce':  nonce,
-         queryString
-    };
-    const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/userCarInfo/search',params,dynamicHeaders)
-    console.log('reservation.response',response);
-    if(response.code === 0) {
-        console.log('获取ID成功',response.data);
-        // getCode(response.data[0].id)
-
-    } else {
-        console.log('获取ID失败',response.msg)
-    }
-
-}
-// 解除绑定
-async function unbind(code,id) {
-    const params = {carNo,carNoType:1,sourceType: 1,iphone,'verificationCode':code,oneId,id}
-    const {sign,timestamp,nonce,queryString} = generateSign(params)
-    const dynamicHeaders = {  
-        'sign': sign,  
-        'timestamp': timestamp,
-        'nonce':  nonce,
-         queryString
-    };
-    const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/userCarInfo/unbind',params,dynamicHeaders)
-    console.log('reservation.response',response);
-    if(response.code === 0) {
-        console.log('解绑成功');
-    } else {
-        console.log('解绑失败',response.msg)
-    }
-
 }
