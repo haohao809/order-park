@@ -1,5 +1,5 @@
 const axios = require('axios');
-const parkName = ""
+const parkName = "儿童"
 var n = {
     utf8: {
         stringToBytes: function(t) {
@@ -253,7 +253,7 @@ async function searchList() {
         'sign': sign,  
         'timestamp': timestamp,
         'nonce':  nonce,
-         queryString
+        //  queryString
     };
     const response = await sendRequest('https://smartum.sz.gov.cn/tcyy/parking/lot-mobile/service-parking-mobile/webapi/parkInfo/searchList',params,dynamicHeaders)
     console.log('reservation.response',response);
@@ -261,7 +261,7 @@ async function searchList() {
         console.log('查询成功');
         // console.log('response.data',response.data.list)
         for(let item of response.data.list) {
-            console.log(item['lotAppVOS'])
+            console.log(item.code,item.name, item['lotAppVOS'])
         }
     }
 }
