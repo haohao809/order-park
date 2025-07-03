@@ -15,7 +15,7 @@ const parkConfig =  {
 const signParkConfig =  {
     code: 'p210434036',
     parkCode: '100019',
-    oneId: 'oDJ04uCH2uyYC4PQqNXQNTEjuhRI'  //设备唯一ID
+    oneId: 'oDJ04uIo5ORlBNkwIZ4sPdPQE3Sw'  //设备唯一ID
 }
 
 const spaceId = '2411287'  // 预定时候才能获取，每个公园都不一样 可通过查询公园信息拿到
@@ -23,9 +23,22 @@ const spaceId = '2411287'  // 预定时候才能获取，每个公园都不一�
 //2605927 园博园公园
 
 // 用户信息、绑定即可获取
-const phone = 'MTU5ODY3NTkxMzU='
-const carNo = '57KkQkdNNzkzMw=='
+const phoneNumber = '15986759132'
+const carNumber = '粤BGM7912'
 
+function base64Encode(le) {
+    const l = le.toString();   
+    if (typeof l === "string" || typeof l === "number") {
+      // 直接使用 Buffer 进行 UTF-8 到 Base64 的转换
+      return Buffer.from(String(l)).toString("base64");
+    } else {
+      return l;
+    }
+}
+// 使用示例
+const carNo = base64Encode(carNumber);
+// const phone = window.btoa(phoneNumber)
+const phone = Buffer.from(phoneNumber).toString('base64')
 
 // 预定时间
 const orderTime = '15:40:00'
@@ -474,6 +487,9 @@ function getBookTime () {
     if(hour < 10) {
         hour = '0' + hour;
     }
+    if(hour > 24) {
+        hour = hour - 24
+    }
     if(minute < 10) {
         minute = '0' + minute;
     }
@@ -497,7 +513,7 @@ async function reservation(code,lineUpType) {
     }
     if(response.code !== 0 && response.code !== -10002) {
         if(response.msg.indexOf('当前车辆已预约') >= 0) {
-            console.log('已预约成功');
+            console.log('已预约成功' + '电话号码'+ phoneNumber + '车牌号码' +carNumber);
         } else {
             checkReservation()
         }                
